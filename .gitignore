@@ -141,5 +141,4 @@ cython_debug/
 
 # Text Editor
 .vscode
-.idea
 /app/immi/
