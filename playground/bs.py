@@ -1,4 +1,5 @@
 from proxycurl_py.asyncio.base import Result
+import json
 
 
 
@@ -6,5 +7,10 @@ x = [Result(success=True, value={'public_identifier': 'walidfmustapha', 'profile
 
 
 
-print(x)
+x = [profile.value for profile in x]
+
+
+with open(r'profiles_list.json', 'w', encoding='utf-8') as f:
+    json.dump(x, f, indent=4)
+
 

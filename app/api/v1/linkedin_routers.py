@@ -13,7 +13,7 @@ router = APIRouter()
              status_code=status.HTTP_201_CREATED,
              response_model=schemas.GetLinkedinProfilesResponse
                 )
-async def fetch_profiles(request: schemas.GetLinkedinProfilesRequest) -> schemas.GetLinkedinProfilesResponse:
+async def fetch_profiles(request: schemas.GetLinkedinProfilesRequest) -> schemas.GetLinkedinProfilesResponse: #FIXME: Redo this piece of shit
 
     """
     Fetch LinkedIn profiles from a list of urls
@@ -21,17 +21,8 @@ async def fetch_profiles(request: schemas.GetLinkedinProfilesRequest) -> schemas
 
     urls = [utils.linkedin_utils.generate_url(request.linkedin_urls)]
     profiles = await proxycurl_api_client.get_bulk_profiles(urls=urls)
-    x = [profile.value for profile in profiles if profile.error is None]
-    return schemas.GetLinkedinProfilesResponse(profiles=x)
-
-
-
-
-
-
-
-
-    pass
+    profiles = [profile.value for profile in profiles if profile.error is None]
+    return schemas.GetLinkedinProfilesResponse(profiles=profiles)
 
 
 
