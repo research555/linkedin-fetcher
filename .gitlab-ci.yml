@@ -50,7 +50,7 @@ deploy_staging:
     - export NEW_ENV_VARS=$(env | grep '^APP_' | sed 's/^APP_//' | tr '\n' ',' | sed 's/,$//')
 
     # Deploy the service with the new environment variables
-    - gcloud run deploy kale-linkedin-scraper-api-production --image $GCR_REPO_STAGING:$CI_COMMIT_SHA --region europe-west1 --platform managed --allow-unauthenticated --update-env-vars=$NEW_ENV_VARS --quiet
+    - gcloud run deploy kale-linkedin-scraper-api-staging --image $GCR_REPO_STAGING:$CI_COMMIT_SHA --region europe-west1 --platform managed --allow-unauthenticated --update-env-vars=$NEW_ENV_VARS --quiet
 
 
 deploy_production:
