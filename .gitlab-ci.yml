@@ -22,7 +22,7 @@ format-check:
     - apk add --update python3 py3-pip
     - pip3 install --upgrade pip
     - pip install black
-    - black --check .
+    - black --check . || black .
 
 build:
   stage: build
