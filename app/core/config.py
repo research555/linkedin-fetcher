@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 
     class Config:
 
-        env_file = r"C:\Users\immi\PyCharmProjects\Startups\kale-linkedin-api\.env"
+        env_file = r".env"
 
 
 settings = Settings()
