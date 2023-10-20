@@ -1,21 +1,21 @@
-# Use the official tiangolo/uvicorn-fastapi image as a base image
 FROM tiangolo/uvicorn-gunicorn:python3.10
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+# Set the working directory in the container to /app
+ENV APP_HOME /app
 
-# Set the working directory inside the docker image
-WORKDIR /app
+WORKDIR $APP_HOME
 
-# Copy the dependencies file to the working directory
-COPY requirements.txt .
+# Conditionally copy the cached virtual environment and set the PATH
+COPY . .
+RUN pip install -r requirements.txt;
 
-# Install any dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Set the environment variable for running the application
+ENV PYTHONUNBUFFERED=1
 
-# Copy the content of the local src directory to the working directory
-COPY ./app /app
+# Expose ports
+EXPOSE 5000 8000 8080
 
-# Specify the command to run on container start
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Cloud Run
+#CMD exec gunicorn --bind :$PORT --workers 1 --worker-class uvicorn.workers.UvicornWorker --threads 8 --timeout 120 app.main:app
+
+CMD exec uvicorn app.main:app --host 0.0.0.0 --port $PORT

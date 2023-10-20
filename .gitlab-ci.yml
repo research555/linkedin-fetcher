@@ -1,13 +1,88 @@
-# You can override the included template(s) by including variable overrides
-# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
-# Secret Detection customization: https://docs.gitlab.com/ee/user/application_security/secret_detection/#customizing-settings
-# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
-# Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
+# File: .gitlab-ci.yml
+image: docker:latest
+
+services:
+  - docker:dind
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_HOST: tcp://docker:2375
+  GCR_REPO_STAGING: gcr.io/$GCP_PROJECT_ID_STAGING/kale-linkedin-scraper-api
+  GCR_REPO_PRODUCTION: gcr.io/$GCP_PROJECT_ID_PRODUCTION/kale-linkedin-scraper-api
+
 stages:
-- test
-sast:
-  stage: test
-include:
-- template: Security/SAST.gitlab-ci.yml
+  - format-check
+  - build
+  - deploy_staging
+  - deploy_production
+
+format-check:
+  stage: format-check
+  script:
+    - apk add --update python3 py3-pip
+    - pip3 install --upgrade pip
+    - pip install black
+    - black --check .
+
+build:
+  stage: build
+  image: google/cloud-sdk
+  script:
+    - mkdir -p credentials
+    - echo $GCP_SERVICE_ACCOUNT_KEY_STAGING > credentials/gcloud-service-account-key.json
+    - gcloud auth activate-service-account --key-file credentials/gcloud-service-account-key.json
+    - gcloud auth configure-docker --quiet
+    - docker build -t $GCR_REPO_STAGING:$CI_COMMIT_SHA .
+    - docker push $GCR_REPO_STAGING:$CI_COMMIT_SHA
+
+deploy_staging:
+  stage: deploy_staging
+  image: google/cloud-sdk
+  environment:
+    name: staging
+  script:
+    - mkdir -p credentials
+    - echo $GCP_SERVICE_ACCOUNT_KEY_STAGING > credentials/gcloud-service-account-key.json
+    - gcloud auth activate-service-account --key-file credentials/gcloud-service-account-key.json
+    - gcloud config set project $GCP_PROJECT_ID_STAGING
+
+    # Format the environment variables for use with gcloud run deploy
+    - export NEW_ENV_VARS=$(env | grep '^APP_' | sed 's/^APP_//' | tr '\n' ',' | sed 's/,$//')
+
+    # Deploy the service with the new environment variables
+    - gcloud run deploy kale-linkedin-scraper-api-production --image $GCR_REPO_STAGING:$CI_COMMIT_SHA --region europe-west1 --platform managed --allow-unauthenticated --update-env-vars=$NEW_ENV_VARS --quiet
+
+
+deploy_production:
+  stage: deploy_production
+  image: google/cloud-sdk
+  when: manual
+  needs:
+    - deploy_staging
+  environment:
+    name: production
+  script:
+    - mkdir -p credentials
+    # Activate the staging service account to pull the Docker image from the staging GCR.
+    - echo $GCP_SERVICE_ACCOUNT_KEY_STAGING > credentials/gcloud-service-account-key.json
+    - gcloud auth activate-service-account --key-file credentials/gcloud-service-account-key.json
+    # Configure Docker to use the authenticated service account.
+    - gcloud auth configure-docker --quiet
+    # Pull the Docker image from the staging GCR.
+    - docker pull $GCR_REPO_STAGING:$CI_COMMIT_SHA
+    # Tag the pulled Docker image with the production GCR repository and the current commit SHA.
+    - docker tag $GCR_REPO_STAGING:$CI_COMMIT_SHA $GCR_REPO_PRODUCTION:$CI_COMMIT_SHA
+    # Activate the production service account to push the Docker image to the production GCR.
+    - echo $GCP_SERVICE_ACCOUNT_KEY_PRODUCTION > credentials/gcloud-service-account-key.json
+    - gcloud auth activate-service-account --key-file credentials/gcloud-service-account-key.json
+    # Push the Docker image to the production GCR.
+    - docker push $GCR_REPO_PRODUCTION:$CI_COMMIT_SHA
+    # Set the active GCP project to the production project.
+    - gcloud config set project $GCP_PROJECT_ID_PRODUCTION
+
+      # Format the environment variables for use with gcloud run deploy
+    - export NEW_ENV_VARS=$(env | grep '^APP_' | sed 's/^APP_//' | tr '\n' ',' | sed 's/,$//')
+    #- echo $NEW_ENV_VARS
+
+    # Deploy the service with the new environment variables
+    - gcloud run deploy kale-linkedin-scraper-api-production --image $GCR_REPO_PRODUCTION:$CI_COMMIT_SHA --region europe-west1 --platform managed --allow-unauthenticated --update-env-vars=$NEW_ENV_VARS --quiet

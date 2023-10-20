@@ -16,9 +16,9 @@ class GoogleCloudStorage:
         )
 
         storage_client = storage.Client(credentials=credentials)
-        bucket_name = settings.LINKEDIN_BUCKET_NAME
+        bucket_name = settings.BUCKET_NAME
         self.bucket = storage_client.bucket(bucket_name)
-        self.bucket_relative_file_path = settings.LINKEDIN_BUCKET_RELATIVE_FILE_PATH
+        self.bucket_relative_file_path = settings.BUCKET_RELATIVE_FILE_PATH
 
     def __upload_blob(self, blob_path: str, source_json: str) -> str:
         if not storage_utils.has_extension(blob_path):
@@ -123,3 +123,12 @@ class GoogleCloudStorage:
             return {}
 
 gcs = GoogleCloudStorage()
+
+
+if __name__ == "__main__":
+
+
+    x = gcs.retrieve_blob_data(base_folder="linkedin", subfolder="profiles", filename="profile_endpoint.json")
+    print(x)
+    pass
+

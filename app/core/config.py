@@ -15,6 +15,13 @@ class Settings(BaseSettings):
     # # # # ENV # # # #
     DEBUG: bool = True
 
+    # # # # GOOGLE CLOUD STORAGE # # # #
+    GCP_SERVICE_ACCOUNT_KEY_POINTER: str
+    BUCKET_RELATIVE_FILE_PATH: str
+    BUCKET_NAME: str
+    GCP_PROJECT_ID_PRODUCTION: str
+    GCP_PROJECT_ID_STAGING: str
+
 
 
     # CORS
@@ -29,5 +36,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-

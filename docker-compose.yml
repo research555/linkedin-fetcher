@@ -1,8 +1,8 @@
 version: "3.8"
-name: kale-linkedin-api
+name: kale-linkedin-scraper-api
 services:
   app:
-    container_name: kale-linkedin-api
+    container_name: kale-linkedin-scraper-api
     build: .
     env_file:
       - .env
