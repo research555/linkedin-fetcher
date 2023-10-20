@@ -18,4 +18,4 @@ EXPOSE 5000 8000 8080
 # Cloud Run
 #CMD exec gunicorn --bind :$PORT --workers 1 --worker-class uvicorn.workers.UvicornWorker --threads 8 --timeout 120 app.main:app
 
-CMD exec uvicorn app.main:app --host 0.0.0.0 --port 8000
+CMD exec uvicorn app.main:app --host 0.0.0.0 --port $PORT

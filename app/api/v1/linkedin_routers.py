@@ -19,7 +19,7 @@ async def fetch_profiles(request: schemas.GetLinkedinProfilesRequest) -> schemas
     Fetch LinkedIn profiles from a list of urls
     """
 
-    urls = [utils.linkedin_utils.generate_url(request.linkedin_urls)]
+    urls = [utils.linkedin_utils.generate_url(url, profile=True) for url in request.linkedin_urls]
     profiles = await proxycurl_api_client.get_bulk_profiles(urls=urls)
     profiles = [profile.value for profile in profiles if profile.error is None]
     return schemas.GetLinkedinProfilesResponse(profiles=profiles)

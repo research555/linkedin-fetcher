@@ -69,7 +69,7 @@ class LinkedinProfileItem(BaseModel):  # FIXME: made some Any fields because I c
 
 # # # # REQUEST MODELS # # # #
 class GetLinkedinProfilesRequest(BaseModel):
-    linkedin_urls: Union[str, List[str]]
+    linkedin_urls: List[str]
 
 
 # # # # RESPONSE MODELS # # # #
