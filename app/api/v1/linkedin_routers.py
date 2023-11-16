@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, status
 import app.utils as utils
 import app.schemas as schemas
 from app.services.external_services import proxycurl_api_client
+from app.api.v1.cloud_routers import upload_to_cloud
+import json
 
 router = APIRouter()
 
@@ -23,8 +25,4 @@ async def fetch_profiles(request: schemas.GetLinkedinProfilesRequest) -> schemas
     profiles = await proxycurl_api_client.get_bulk_profiles(urls=urls)
     profiles = [profile.value for profile in profiles if profile.error is None]
     return schemas.GetLinkedinProfilesResponse(profiles=profiles)
-
-
-
-
 

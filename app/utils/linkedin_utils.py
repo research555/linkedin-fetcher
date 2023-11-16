@@ -93,7 +93,4 @@ linkedin_utils = LinkedinUtils()
 
 if __name__ == "__main__":
 
-    urls  = ["walidfmustapha", "www.linkedin.com/in/walidfmustapha/", "https://www.linkedin.com/in/walidfmustapha", "https://www.linkedin.com/in/walidfmustapha/"]
-
-    for url in urls:
-        print(linkedin_utils.generate_url(url, profile=True))
+    pass

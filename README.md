@@ -1,6 +1,10 @@
 # Template API
 
-This project serves as a template for building APIs using a structured and organized approach. Below is a quick guide on the project structure and how to use it.
+This is a heavily stripped down version of the API I developed to help me gather Linkedin profiles, companies, job profiles and more.
+It uses the service proxycurl at its backbone. Its not meant to be used in any meaningful way, but rather serves as a project to showcase my
+coding style and how I structure my projects for future employers.
+
+Below is a quick guide on the project structure and how to use it.
 
 ```plaintext
 

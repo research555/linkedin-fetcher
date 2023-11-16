@@ -6,9 +6,8 @@ import app.utils as utils
 
 # # # # DATA MODELS # # # #
 class LinkedinProfileItem(BaseModel):  # FIXME: made some Any fields because I couldnt find profiles with these fields populated
-    #error: bool = False
-    #error_message: Optional[str] = None
-    public_identifier: Optional[str] = None
+
+    public_identifier: str
     linkedin_url: Optional[str] = None
     profile_pic_url: Optional[str] = None
     background_cover_image_url: Optional[str] = None
@@ -58,9 +57,8 @@ class LinkedinProfileItem(BaseModel):  # FIXME: made some Any fields because I c
 
     @validator('linkedin_url', pre=True, always=True)
     def generate_linkedin_url_from_public_identifier(cls, v, values):
-        print(values)
+        print(v, values)
         if v is None and 'public_identifier' in values:
-            print(values['public_identifier'])
             return utils.linkedin_utils.generate_url(values['public_identifier'], profile=True)
         return v
 

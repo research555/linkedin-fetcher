@@ -7,8 +7,8 @@ services:
 variables:
   DOCKER_DRIVER: overlay2
   DOCKER_HOST: tcp://docker:2375
-  GCR_REPO_STAGING: gcr.io/$GCP_PROJECT_ID_STAGING/kale-linkedin-scraper-api
-  GCR_REPO_PRODUCTION: gcr.io/$GCP_PROJECT_ID_PRODUCTION/kale-linkedin-scraper-api
+  GCR_REPO_STAGING: gcr.io/$GCP_PROJECT_ID_STAGING/linkedin-fetcher-api
+  GCR_REPO_PRODUCTION: gcr.io/$GCP_PROJECT_ID_PRODUCTION/linkedin-fetcher-api
 
 stages:
   - format-check
@@ -22,7 +22,7 @@ format-check:
     - apk add --update python3 py3-pip
     - pip3 install --upgrade pip
     - pip install black
-    - black --check . || black .
+    - black --check .
 
 build:
   stage: build
@@ -45,12 +45,8 @@ deploy_staging:
     - echo $GCP_SERVICE_ACCOUNT_KEY_STAGING > credentials/gcloud-service-account-key.json
     - gcloud auth activate-service-account --key-file credentials/gcloud-service-account-key.json
     - gcloud config set project $GCP_PROJECT_ID_STAGING
-
-    # Format the environment variables for use with gcloud run deploy
     - export NEW_ENV_VARS=$(env | grep '^APP_' | sed 's/^APP_//' | tr '\n' ',' | sed 's/,$//')
-
-    # Deploy the service with the new environment variables
-    - gcloud run deploy kale-linkedin-scraper-api-staging --image $GCR_REPO_STAGING:$CI_COMMIT_SHA --region europe-west1 --platform managed --allow-unauthenticated --update-env-vars=$NEW_ENV_VARS --quiet
+    - gcloud run deploy linkedin-fetcher-api-staging --image $GCR_REPO_STAGING:$CI_COMMIT_SHA --region europe-west1 --platform managed --allow-unauthenticated --update-env-vars=$NEW_ENV_VARS --quiet
 
 
 deploy_production:
@@ -63,26 +59,16 @@ deploy_production:
     name: production
   script:
     - mkdir -p credentials
-    # Activate the staging service account to pull the Docker image from the staging GCR.
     - echo $GCP_SERVICE_ACCOUNT_KEY_STAGING > credentials/gcloud-service-account-key.json
     - gcloud auth activate-service-account --key-file credentials/gcloud-service-account-key.json
-    # Configure Docker to use the authenticated service account.
     - gcloud auth configure-docker --quiet
-    # Pull the Docker image from the staging GCR.
     - docker pull $GCR_REPO_STAGING:$CI_COMMIT_SHA
-    # Tag the pulled Docker image with the production GCR repository and the current commit SHA.
     - docker tag $GCR_REPO_STAGING:$CI_COMMIT_SHA $GCR_REPO_PRODUCTION:$CI_COMMIT_SHA
-    # Activate the production service account to push the Docker image to the production GCR.
     - echo $GCP_SERVICE_ACCOUNT_KEY_PRODUCTION > credentials/gcloud-service-account-key.json
     - gcloud auth activate-service-account --key-file credentials/gcloud-service-account-key.json
-    # Push the Docker image to the production GCR.
     - docker push $GCR_REPO_PRODUCTION:$CI_COMMIT_SHA
-    # Set the active GCP project to the production project.
     - gcloud config set project $GCP_PROJECT_ID_PRODUCTION
 
-      # Format the environment variables for use with gcloud run deploy
     - export NEW_ENV_VARS=$(env | grep '^APP_' | sed 's/^APP_//' | tr '\n' ',' | sed 's/,$//')
-    #- echo $NEW_ENV_VARS
-
-    # Deploy the service with the new environment variables
-    - gcloud run deploy kale-linkedin-scraper-api-production --image $GCR_REPO_PRODUCTION:$CI_COMMIT_SHA --region europe-west1 --platform managed --allow-unauthenticated --update-env-vars=$NEW_ENV_VARS --quiet
+    # Depoloy
+    - gcloud run deploy linkedin-fetcher-api-production --image $GCR_REPO_PRODUCTION:$CI_COMMIT_SHA --region europe-west1 --platform managed --allow-unauthenticated --update-env-vars=$NEW_ENV_VARS --quiet

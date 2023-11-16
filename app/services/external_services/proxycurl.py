@@ -19,6 +19,10 @@ class ProxycurlClient:
 
         return result
 
+    async def get_profile(self, url: str):
+        result = await self.proxycurl_client.linkedin.person.get(url=url, fallback_to_cache="on-error", use_cache='if-recent')
+        return result
+
 
 proxycurl_api_client = ProxycurlClient()
 

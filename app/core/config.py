@@ -7,7 +7,6 @@ class Settings(BaseSettings):
     # # # # PROXYCURL # # # #
     PROXYCURL_API_KEY: str
 
-
     # # # # FASTAPI # # # #
     PROJECT_NAME: str
     PROJECT_V1_NAME: str
@@ -32,7 +31,7 @@ class Settings(BaseSettings):
 
     class Config:
 
-        env_file = r".env"
+        env_file = ".env"
 
 
 settings = Settings()
